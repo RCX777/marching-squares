@@ -84,7 +84,7 @@ for (i = 0; i < shared->image->x; i++) {
 ```
 
 The easy solution:
-```
+```c
 lock() // this ensures that realloc_memory() is done once
 if (!memory_already_reallocated) {
     shared->image = realloc_memory()
@@ -117,7 +117,7 @@ assignment.
 3) Removing some of the branching is also a good thing, as it results in less
 jumps and branch misses. Take the following example:
 
-```
+```c
 if (curr_col > SIGMA) {
     grid[i][j] = 0;
 } else {
@@ -126,7 +126,7 @@ if (curr_col > SIGMA) {
 ```
 
 This could be easily reduced to:
-```
+```c
 grid[i][j] = curr_col <= SIGMA
 ```
 
