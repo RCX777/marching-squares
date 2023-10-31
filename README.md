@@ -14,14 +14,14 @@ needs to happen only ONCE. In order to achieve this, I used a pattern involving
 a mutex and a check.
 
 Using this approach would still result in all the threads allocating the map:
-```
+```c
 pthread_mutex_lock(&shared->locks[LOCK_CMAP_ALLOC]);
 shared->cmap = malloc(CONTOUR_CONFIG_COUNT * sizeof(ppm_image *));
 pthread_mutex_unlock(&shared->locks[LOCK_CMAP_ALLOC]);
 ```
 
 The solution is adding an `if` which checks if the task is already done:
-```
+```c
 pthread_mutex_lock(&shared->locks[LOCK_CMAP_ALLOC]);
 if (!shared->cmap) {
     shared->cmap = malloc(CONTOUR_CONFIG_COUNT * sizeof(ppm_image *));
@@ -42,7 +42,7 @@ such struct at creation, as passing the same struct would result in bad tid
 values.
 
 Doing this will result in a race condition:
-```
+```c
 thread_data args = {
     .tid    = 0,
     .shared = shared
@@ -56,13 +56,13 @@ for (long i = 0; i < shared->nthreads; ++i) {
 ```
 
 The solution is providing a different struct to each thread:
-```
+```c
 thread_data args[shared->nthreads];
 
 for (long i = 0; i <) {
     args[i] = (thread_data) { .shared = shared, .tid = i };
 
-    pthread_create(&threads[i], NULL, worker, &args[i])
+    pthread_create(&threads[i], NULL, worker, &args[i]);
 }
 ```
 
@@ -70,15 +70,15 @@ for (long i = 0; i <) {
 
 My approach to this is quite simple. For example, I want to safely parallelize
 this code:
-```
-shared->image = realloc_memory() // this needs to happen only once
+```c
+shared->image = realloc_memory(); // this needs to happen only once
 
 // this outer for() loop can be parallelized
 for (i = 0; i < shared->image->x; i++) {
     for (j = 0; j < shared->image->y; j++) {
 
         // realloc_memory() must happen before any of this
-        shared->image->data[x][y] = dark_magic()
+        shared->image->data[x][y] = dark_magic();
     }
 }
 ```
